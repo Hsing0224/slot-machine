@@ -10,8 +10,8 @@ let showQuestionList;
 
 function getData() {
 	Promise.all([
-		fetch('../data/question.json').then(response => response.json()),
-		fetch('../data/answer.json').then(response => response.json())
+		fetch('./../data/question.json').then(response => response.json()),
+		fetch('./../data/answer.json').then(response => response.json())
 	]).then(dataArray => {
 		questionData = dataArray[0];
 		answerData = dataArray[1];

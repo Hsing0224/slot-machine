@@ -1,34 +1,147 @@
 const startButton = document.getElementById('start');
-const playedList = document.getElementById('playedList');
+const resetButton = document.getElementById('reset');
+const answerButton = document.getElementById('answer');
+const showBoxElement = document.getElementById('showBox');
+const questionListElement = document.getElementById('questionList');
+const playedListElement = document.getElementById('playedList');
 const steps = ['最', '第二'];
 let questionData;
 let answerData;
+let showQuestionList;
 
 function getData() {
 	Promise.all([
 		fetch('../data/question.json').then(response => response.json()),
 		fetch('../data/answer.json').then(response => response.json())
-	])
-		.then(dataArray => {
-			questionData = dataArray[0];
-			answerData = dataArray[1];
-		})
+	]).then(dataArray => {
+		questionData = dataArray[0];
+		answerData = dataArray[1];
+		document.body.classList.add('dataLoaded');
+	});
+}
+
+function getRandom(length) {
+	return Math.floor(Math.random() * length);
+}
+
+function getShowQuestion() {
+	questionData.sort(function(){
+		return getRandom(3) - 1;
+	});
+}
+
+function changeData(dataIndex) {
+	const data = questionData.splice(dataIndex, 1)[0];
+	questionData.splice(2, 0, data);
+}
+
+function checkQuestion(e) {
+	withAlt = e.altKey;
+	withShift = e.shiftKey;
+
+	if(!withAlt && !withShift) return;
+
+	if(withAlt) {
+		// 大家來找碴
+		console.log('大家來找碴');
+		questionData.forEach((item, index)=>{
+			if(item.id === 13) {				
+				changeData(index);
+				return;
+			}
+		});
+	} else {
+
+	}
+
+	if(withShift) {
+		// 寫字
+		console.log('寫字');
+		questionData.forEach((item, index)=>{
+			if(item.id === 14) {				
+				changeData(index);
+				return;
+			}
+		});
+	} else {
+
+	}
+	console.log("🚀 -------------------------------🚀")
+	console.log("🚀 ~ after questionData:", questionData)
+	console.log("🚀 -------------------------------🚀")
+}
+
+function createQuestion() {
+	const repeatCount = 5 - getRandom(3);
+
+	const repeatedArray = Array.from({ length: repeatCount }, () => questionData).flat();
+	
+	for(let i = 0; i < repeatedArray.length; i++) {
+		const data = repeatedArray[i];
+		const stepWord = steps[getRandom(2)];
+		const keywordIndex = data.keyword[getRandom(data.keyword.length)];
+		const item = document.createElement('li');
+		const text = document.createElement('div');
+		text.classList.add('text');
+		text.textContent = data.name;
+		text.dataset.answer = `${stepWord}${answerData[keywordIndex]}`;
+		item.appendChild(text);
+		questionListElement.appendChild(item);
+	}
+}
+
+function runAnimate() {
+	showBoxElement.classList.add('show');
+	questionListElement.classList.add('animate');
+}
+
+function record() {
+	const data = questionData.splice(2, 1);
+	const item = document.createElement('li');
+	item.textContent = data[0].name;
+	playedListElement.appendChild(item);
 }
 
 window.addEventListener('load', ()=>{
 	getData();
 });
 
-startButton.addEventListener('click', function(){
-	console.log(questionData);
-	console.log(answerData);
-	const isRunning = this.classList.contains('running');
-	if(isRunning) {
-		// 開始跑
-		this.textContent = '就決定是你了！！！';
-	} else {
-		// 重設
-		this.textContent = '所以要測的是？';
-	}
-	this.classList.toggle('running', !isRunning);
+startButton.addEventListener('click', function(e){
+	const isDisabled = this.classList.contains('disabled');
+	if(isDisabled) return;
+
+	getShowQuestion();
+	checkQuestion(e);
+	createQuestion();
+	runAnimate();
+	this.style.display = 'none';
+	answerButton.style.display = 'block';
+});
+
+questionList.addEventListener('animationend', function(){
+	answerButton.classList.remove('disabled');
+});
+
+answerButton.addEventListener('click', function(){
+	const isDisabled = this.classList.contains('disabled');
+	if(isDisabled) return;
+
+	questionListElement.classList.add('showAnswer');
+	this.classList.add('disabled');
+	resetButton.classList.remove('disabled');
+});
+
+resetButton.addEventListener('click', function(){
+	const isDisabled = this.classList.contains('disabled');
+	if(isDisabled) return;
+
+	record();
+
+	showBoxElement.classList.remove('show');
+	questionListElement.classList.remove('animate', 'showAnswer');
+	startButton.style.display = 'block';
+	answerButton.style.display = 'none';
+	questionListElement.innerHTML = '';
+
+	this.classList.add('disabled');
 });

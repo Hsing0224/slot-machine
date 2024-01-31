@@ -4,7 +4,6 @@ const answerButton = document.getElementById('answer');
 const showBoxElement = document.getElementById('showBox');
 const questionListElement = document.getElementById('questionList');
 const playedListElement = document.getElementById('playedList');
-const steps = ['最', '第二'];
 let questionData;
 let answerData;
 let showQuestionList;
@@ -39,36 +38,34 @@ function checkQuestion(e) {
 	withAlt = e.altKey;
 	withShift = e.shiftKey;
 
-	if(!withAlt && !withShift) return;
+	if(!withAlt && !withShift && questionData.length > 3) {
+		const itemId = questionData[2].id;
+		if(itemId === 13 || itemId === 14) {
+			const data = questionData.splice(2, 1)[0];
+			questionData.push(data);
+			checkQuestion(e);
+		}
+	};
 
 	if(withAlt) {
 		// 大家來找碴
-		console.log('大家來找碴');
 		questionData.forEach((item, index)=>{
 			if(item.id === 13) {				
 				changeData(index);
 				return;
 			}
 		});
-	} else {
-
 	}
 
 	if(withShift) {
 		// 寫字
-		console.log('寫字');
 		questionData.forEach((item, index)=>{
 			if(item.id === 14) {				
 				changeData(index);
 				return;
 			}
 		});
-	} else {
-
 	}
-	console.log("🚀 -------------------------------🚀")
-	console.log("🚀 ~ after questionData:", questionData)
-	console.log("🚀 -------------------------------🚀")
 }
 
 function createQuestion() {
@@ -78,13 +75,12 @@ function createQuestion() {
 	
 	for(let i = 0; i < repeatedArray.length; i++) {
 		const data = repeatedArray[i];
-		const stepWord = steps[getRandom(2)];
 		const keywordIndex = data.keyword[getRandom(data.keyword.length)];
 		const item = document.createElement('li');
 		const text = document.createElement('div');
 		text.classList.add('text');
 		text.textContent = data.name;
-		text.dataset.answer = `${stepWord}${answerData[keywordIndex]}`;
+		text.dataset.answer = `最${answerData[keywordIndex]}`;
 		item.appendChild(text);
 		questionListElement.appendChild(item);
 	}
